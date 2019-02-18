@@ -51,7 +51,7 @@ warnings.filterwarnings("ignore")
 ## Summary
 - Total savings of lease can be up to `$`10,611.51 (avg total savings: `$`3207.92)
     - Savings from extending lease to 24 months, can be up to `$`5699.98 (avg total savings: `$`2254.44)
-    - Savings from leasing on the lowest month, can be up to `$`7854.27 (avg total savings: `$`1702.64)
+    - Savings from leasing on the lowest month, can be up to `$`7854.27 (avg total savings: `$`644)
 - The districts that have the most savings are `1, 7, 20 ,8, 22, 9, 2, 27, 4, 11`
 
 ## Data pull
@@ -440,15 +440,237 @@ decision_mean_median = (
     .pipe(lambda x:x.assign(difference_between_mean_median = x.monthly_rent_copy - x.monthly_rent))
     .query("num_bedrooms_altered <= 3")
 )
+
+decision_mean_median.head()
 ```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>lease_month</th>
+      <th>district</th>
+      <th>num_bedrooms_altered</th>
+      <th>monthly_rent</th>
+      <th>monthly_rent_copy</th>
+      <th>difference_between_mean_median</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2016-01-01</td>
+      <td>1</td>
+      <td>1</td>
+      <td>2975.000000</td>
+      <td>3250.0</td>
+      <td>275.000000</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2016-01-01</td>
+      <td>1</td>
+      <td>2</td>
+      <td>4463.888889</td>
+      <td>4500.0</td>
+      <td>36.111111</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2016-01-01</td>
+      <td>1</td>
+      <td>3</td>
+      <td>5838.000000</td>
+      <td>5950.0</td>
+      <td>112.000000</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>2016-01-01</td>
+      <td>2</td>
+      <td>1</td>
+      <td>3277.500000</td>
+      <td>3325.0</td>
+      <td>47.500000</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>2016-01-01</td>
+      <td>2</td>
+      <td>2</td>
+      <td>4193.000000</td>
+      <td>4200.0</td>
+      <td>7.000000</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
 
 
 ```python
 ## sub plot of difference between mean and median for all districts
-plt.plot(decision_mean_median.lease_month,decision_mean_median.monthly_rent)
-plt.plot(decision_mean_median.lease_month,decision_mean_median.monthly_rent_copy)
-
+for i in decision_mean_median.district.unique():
+    
+    onebr = decision_mean_median.query("num_bedrooms_altered == 1 & district == " + str(i))
+    twobr = decision_mean_median.query("num_bedrooms_altered == 2 & district == " + str(i))
+    threebr = decision_mean_median.query("num_bedrooms_altered == 3 & district == " + str(i))
+    
+    plt.figure(figsize=(20,5))
+    plt.subplot(1, 3, 1)
+    plt.plot(onebr.lease_month,onebr.monthly_rent,label='mean')
+    plt.plot(onebr.lease_month,onebr.monthly_rent_copy,label='median')
+    plt.xticks(rotation=45)
+    plt.title("District " + str(i) + ": Mean and median monthly rent, 1BR")
+    plt.xlabel("date")
+    plt.ylabel("Amount (SGD)")
+    plt.legend(loc='best')
+    
+    plt.subplot(1, 3, 2)
+    plt.plot(twobr.lease_month,twobr.monthly_rent,label='mean')
+    plt.plot(twobr.lease_month,twobr.monthly_rent_copy,label='median')
+    plt.xticks(rotation=45)
+    plt.title("District " + str(i) + ": Mean and median monthly rent, 2BR")
+    plt.xlabel("date")
+    plt.ylabel("Amount (SGD)")
+    plt.legend(loc='best')
+    
+    plt.subplot(1, 3, 3)
+    plt.plot(threebr.lease_month,threebr.monthly_rent,label='mean')
+    plt.plot(threebr.lease_month,threebr.monthly_rent_copy,label='median')
+    plt.xticks(rotation=45)
+    plt.title("District " + str(i) + ": Mean and median monthly rent, 3BR")
+    plt.xlabel("date")
+    plt.ylabel("Amount (SGD)")
+    plt.legend(loc='best')
+    
 ```
+
+
+![png](property-rental-price_files/property-rental-price_20_0.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_1.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_2.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_3.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_4.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_5.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_6.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_7.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_8.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_9.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_10.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_11.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_12.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_13.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_14.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_15.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_16.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_17.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_18.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_19.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_20.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_21.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_22.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_23.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_24.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_25.png)
+
+
+
+![png](property-rental-price_files/property-rental-price_20_26.png)
+
 
 #### The difference between mean and median isnt that much, will be going with mean
 
@@ -981,7 +1203,7 @@ savings_for_longer_lease = (
     .query("ds_y == lowest_month_date")
     .drop(['ds_y'],1)
     .rename(columns={"ds_x":"ds","ensemble_model_output_x":"ensemble_model_output","ensemble_model_output_y":"previous_year_rental"})
-    .pipe(lambda x:x.assign(savings_24months_lease = 12 * (x.ensemble_model_output-x.previous_year_rental)))
+    .pipe(lambda x:x.assign(savings_24months_lease = 12 * (x.holtwinter-x.previous_year_rental)))
     .pipe(lambda x:x.assign(should_extend_lease = np.where(x.savings_24months_lease>0,1,0)))
 )
 
@@ -996,7 +1218,7 @@ total_savings_for_longer_lease_lowest_months = (
 
 
 ```python
-total_savings_for_longer_lease_lowest_months[['district','location','lowest_month','highest_month','savings_per_year','savings_24months_lease','should_extend_lease','total_savings_per_year']]
+total_savings_for_longer_lease_lowest_months[['district','location','lowest_month','highest_month','savings_per_year','savings_24months_lease','should_extend_lease','total_savings_per_year']].head(10)
 ```
 
 
@@ -1032,70 +1254,37 @@ total_savings_for_longer_lease_lowest_months[['district','location','lowest_mont
   </thead>
   <tbody>
     <tr>
-      <th>0</th>
-      <td>1</td>
-      <td>Boat Quay, Chinatown, Havelock Road, Marina Sq...</td>
-      <td>6</td>
-      <td>4</td>
-      <td>4911.53</td>
-      <td>5699.983645</td>
-      <td>1</td>
-      <td>10611.513645</td>
-    </tr>
-    <tr>
       <th>5</th>
       <td>7</td>
       <td>Beach Road, Bencoolen Road, Bugis, Rochor</td>
       <td>11</td>
       <td>2</td>
       <td>7854.27</td>
-      <td>-915.618793</td>
+      <td>-1271.525302</td>
       <td>0</td>
       <td>7854.270000</td>
     </tr>
     <tr>
-      <th>18</th>
-      <td>20</td>
-      <td>Ang Mo Kio, Bishan, Braddell Road, Thomson</td>
-      <td>8</td>
-      <td>11</td>
-      <td>1956.01</td>
-      <td>4036.551788</td>
+      <th>0</th>
       <td>1</td>
-      <td>5992.561788</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>8</td>
-      <td>Little India, Farrer Park, Serangoon Road</td>
-      <td>5</td>
-      <td>8</td>
-      <td>2110.55</td>
-      <td>3506.388141</td>
-      <td>1</td>
-      <td>5616.938141</td>
-    </tr>
-    <tr>
-      <th>20</th>
-      <td>22</td>
-      <td>Boon Lay, Jurong, Tuas</td>
-      <td>7</td>
-      <td>1</td>
-      <td>3033.66</td>
-      <td>1676.136794</td>
-      <td>1</td>
-      <td>4709.796794</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>9</td>
-      <td>Cairnhill, Killiney, Leonie Hill, Orchard, Oxley</td>
-      <td>12</td>
+      <td>Boat Quay, Chinatown, Havelock Road, Marina Sq...</td>
+      <td>6</td>
       <td>4</td>
-      <td>3416.53</td>
-      <td>1177.268234</td>
+      <td>4911.53</td>
+      <td>-161.031362</td>
+      <td>0</td>
+      <td>4911.530000</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>21</td>
+      <td>Clementi, Upper Bukit Timah, Hume Avenue</td>
       <td>1</td>
-      <td>4593.798234</td>
+      <td>8</td>
+      <td>2659.52</td>
+      <td>2070.576103</td>
+      <td>1</td>
+      <td>4730.096103</td>
     </tr>
     <tr>
       <th>1</th>
@@ -1104,20 +1293,20 @@ total_savings_for_longer_lease_lowest_months[['district','location','lowest_mont
       <td>3</td>
       <td>11</td>
       <td>4440.15</td>
-      <td>-1011.075487</td>
+      <td>-1616.438359</td>
       <td>0</td>
       <td>4440.150000</td>
     </tr>
     <tr>
-      <th>23</th>
-      <td>27</td>
-      <td>Admiralty, Sembawang, Yishun</td>
-      <td>7</td>
+      <th>2</th>
+      <td>3</td>
+      <td>Alexandra Road, Tiong Bahru, Queenstown</td>
       <td>1</td>
-      <td>1161.13</td>
-      <td>2596.652946</td>
+      <td>3</td>
+      <td>1956.64</td>
+      <td>1703.878584</td>
       <td>1</td>
-      <td>3757.782946</td>
+      <td>3660.518584</td>
     </tr>
     <tr>
       <th>3</th>
@@ -1126,9 +1315,31 @@ total_savings_for_longer_lease_lowest_months[['district','location','lowest_mont
       <td>6</td>
       <td>2</td>
       <td>2916.21</td>
-      <td>-2593.776472</td>
+      <td>727.474375</td>
+      <td>1</td>
+      <td>3643.684375</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>9</td>
+      <td>Cairnhill, Killiney, Leonie Hill, Orchard, Oxley</td>
+      <td>12</td>
+      <td>4</td>
+      <td>3416.53</td>
+      <td>-632.498019</td>
       <td>0</td>
-      <td>2916.210000</td>
+      <td>3416.530000</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>22</td>
+      <td>Boon Lay, Jurong, Tuas</td>
+      <td>7</td>
+      <td>1</td>
+      <td>3033.66</td>
+      <td>379.197204</td>
+      <td>1</td>
+      <td>3412.857204</td>
     </tr>
     <tr>
       <th>9</th>
@@ -1137,9 +1348,20 @@ total_savings_for_longer_lease_lowest_months[['district','location','lowest_mont
       <td>3</td>
       <td>10</td>
       <td>2715.38</td>
-      <td>-1887.564577</td>
+      <td>-510.966512</td>
       <td>0</td>
       <td>2715.380000</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>20</td>
+      <td>Ang Mo Kio, Bishan, Braddell Road, Thomson</td>
+      <td>8</td>
+      <td>11</td>
+      <td>1956.01</td>
+      <td>644.381755</td>
+      <td>1</td>
+      <td>2600.391755</td>
     </tr>
   </tbody>
 </table>
@@ -1153,7 +1375,7 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(10).distr
 # savings_for_each_district_with_location.head(10)
 ```
 
-#### Districts to focus are 1, 7, 20 ,8, 22, 9, 2, 27, 4, 11
+#### Districts to focus are 7, 1, 21 ,2, 3, 4, 9, 22, 11, 20
 
 ### Plot out top 10 districts
 - plot out prediction, trend
@@ -1200,94 +1422,94 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(10).distr
   </thead>
   <tbody>
     <tr>
-      <th>0</th>
-      <td>1</td>
-      <td>Boat Quay, Chinatown, Havelock Road, Marina Sq...</td>
-      <td>5699.983645</td>
-      <td>1</td>
-      <td>4911.53</td>
-      <td>10611.513645</td>
-    </tr>
-    <tr>
       <th>5</th>
       <td>7</td>
       <td>Beach Road, Bencoolen Road, Bugis, Rochor</td>
-      <td>-915.618793</td>
+      <td>-1271.525302</td>
       <td>0</td>
       <td>7854.27</td>
       <td>7854.270000</td>
     </tr>
     <tr>
-      <th>18</th>
-      <td>20</td>
-      <td>Ang Mo Kio, Bishan, Braddell Road, Thomson</td>
-      <td>4036.551788</td>
+      <th>0</th>
       <td>1</td>
-      <td>1956.01</td>
-      <td>5992.561788</td>
+      <td>Boat Quay, Chinatown, Havelock Road, Marina Sq...</td>
+      <td>-161.031362</td>
+      <td>0</td>
+      <td>4911.53</td>
+      <td>4911.530000</td>
     </tr>
     <tr>
-      <th>6</th>
-      <td>8</td>
-      <td>Little India, Farrer Park, Serangoon Road</td>
-      <td>3506.388141</td>
+      <th>19</th>
+      <td>21</td>
+      <td>Clementi, Upper Bukit Timah, Hume Avenue</td>
+      <td>2070.576103</td>
       <td>1</td>
-      <td>2110.55</td>
-      <td>5616.938141</td>
-    </tr>
-    <tr>
-      <th>20</th>
-      <td>22</td>
-      <td>Boon Lay, Jurong, Tuas</td>
-      <td>1676.136794</td>
-      <td>1</td>
-      <td>3033.66</td>
-      <td>4709.796794</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>9</td>
-      <td>Cairnhill, Killiney, Leonie Hill, Orchard, Oxley</td>
-      <td>1177.268234</td>
-      <td>1</td>
-      <td>3416.53</td>
-      <td>4593.798234</td>
+      <td>2659.52</td>
+      <td>4730.096103</td>
     </tr>
     <tr>
       <th>1</th>
       <td>2</td>
       <td>Anson Road, Chinatown, Neil Road, Raffles Plac...</td>
-      <td>-1011.075487</td>
+      <td>-1616.438359</td>
       <td>0</td>
       <td>4440.15</td>
       <td>4440.150000</td>
     </tr>
     <tr>
-      <th>23</th>
-      <td>27</td>
-      <td>Admiralty, Sembawang, Yishun</td>
-      <td>2596.652946</td>
+      <th>2</th>
+      <td>3</td>
+      <td>Alexandra Road, Tiong Bahru, Queenstown</td>
+      <td>1703.878584</td>
       <td>1</td>
-      <td>1161.13</td>
-      <td>3757.782946</td>
+      <td>1956.64</td>
+      <td>3660.518584</td>
     </tr>
     <tr>
       <th>3</th>
       <td>4</td>
       <td>Keppel, Mount Faber, Sentosa, Telok Blangah</td>
-      <td>-2593.776472</td>
-      <td>0</td>
+      <td>727.474375</td>
+      <td>1</td>
       <td>2916.21</td>
-      <td>2916.210000</td>
+      <td>3643.684375</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>9</td>
+      <td>Cairnhill, Killiney, Leonie Hill, Orchard, Oxley</td>
+      <td>-632.498019</td>
+      <td>0</td>
+      <td>3416.53</td>
+      <td>3416.530000</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>22</td>
+      <td>Boon Lay, Jurong, Tuas</td>
+      <td>379.197204</td>
+      <td>1</td>
+      <td>3033.66</td>
+      <td>3412.857204</td>
     </tr>
     <tr>
       <th>9</th>
       <td>11</td>
       <td>Chancery, Bukit Timah, Dunearn Road, Newton</td>
-      <td>-1887.564577</td>
+      <td>-510.966512</td>
       <td>0</td>
       <td>2715.38</td>
       <td>2715.380000</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>20</td>
+      <td>Ang Mo Kio, Bishan, Braddell Road, Thomson</td>
+      <td>644.381755</td>
+      <td>1</td>
+      <td>1956.01</td>
+      <td>2600.391755</td>
     </tr>
   </tbody>
 </table>
@@ -1307,7 +1529,7 @@ for i in districts_to_focus:
     focus_predict_plot_df = (
         predict_future_values
         .query("district == " + str(i))
-        [['ds','actual_monthly_rent','ensemble_model_output']]
+        [['ds','actual_monthly_rent','ensemble_model_output','holtwinter']]
     )
     
     lowest_month = savings_for_each_district_with_location.query("district == " + str(i)).lowest_month.values[0]
@@ -1332,11 +1554,13 @@ for i in districts_to_focus:
     plt.text(lowest_month-0.5,lowest_month_rent+10,"lowest\nmonth,"+str(lowest_month),color='red',fontsize='12')
     plt.text(highest_month-0.5,highest_month_rent+10,"highest\nmonth,"+str(highest_month),color='red',fontsize='12')
     plt.xlabel("month")
+    plt.ylim(bottom=lowest_month_rent-200)
+    plt.ylim(top=highest_month_rent+100)
     plt.ylabel("Amount (SGD)")
     
     plt.subplot(1, 3, 3)
     plt.plot(focus_predict_plot_df.query("ds <= '2018-12-01'").ds,focus_predict_plot_df.query("ds <= '2018-12-01'").actual_monthly_rent,label='actual')
-    plt.plot(focus_predict_plot_df.query("ds > '2018-12-01'").ds,focus_predict_plot_df.query("ds > '2018-12-01'").ensemble_model_output,label='predict')
+    plt.plot(focus_predict_plot_df.query("ds > '2018-12-01'").ds,focus_predict_plot_df.query("ds > '2018-12-01'").holtwinter,label='predict')
     plt.xticks(rotation=45)
     plt.title("District " + str(i) + ": Prediction of rent, next 24 months ")
     plt.legend(loc='best')
@@ -1389,6 +1613,7 @@ for i in districts_to_focus:
 ### Conclusion
 - Assumptions:
     1. the prediction of the rental amount in the next 24 months is assuming all things stay constant, and there is no new cooling property measure introduced
+    1. we did an average over district, and did not look into specific area (example: bukit panjang or tiong bahru). if looked into specific areas, there might be differences between areas.
 - Constraints:
     1. the prediction accuracy can be further improved if a better model is applied, however to reduce complexity, 2 simple models were used to
 

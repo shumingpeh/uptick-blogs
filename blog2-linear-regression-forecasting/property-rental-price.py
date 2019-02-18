@@ -49,7 +49,7 @@ warnings.filterwarnings("ignore")
 # ## Summary
 # - Total savings of lease can be up to `$`10,611.51 (avg total savings: `$`3207.92)
 #     - Savings from extending lease to 24 months, can be up to `$`5699.98 (avg total savings: `$`2254.44)
-#     - Savings from leasing on the lowest month, can be up to `$`7854.27 (avg total savings: `$`1702.64)
+#     - Savings from leasing on the lowest month, can be up to `$`7854.27 (avg total savings: `$`644)
 # - The districts that have the most savings are `1, 7, 20 ,8, 22, 9, 2, 27, 4, 11`
 
 # ## Data pull
@@ -212,12 +212,46 @@ decision_mean_median = (
     .query("num_bedrooms_altered <= 3")
 )
 
+decision_mean_median.head()
+
 
 
 
 ## sub plot of difference between mean and median for all districts
-plt.plot(decision_mean_median.lease_month,decision_mean_median.monthly_rent)
-plt.plot(decision_mean_median.lease_month,decision_mean_median.monthly_rent_copy)
+for i in decision_mean_median.district.unique():
+    
+    onebr = decision_mean_median.query("num_bedrooms_altered == 1 & district == " + str(i))
+    twobr = decision_mean_median.query("num_bedrooms_altered == 2 & district == " + str(i))
+    threebr = decision_mean_median.query("num_bedrooms_altered == 3 & district == " + str(i))
+    
+    plt.figure(figsize=(20,5))
+    plt.subplot(1, 3, 1)
+    plt.plot(onebr.lease_month,onebr.monthly_rent,label='mean')
+    plt.plot(onebr.lease_month,onebr.monthly_rent_copy,label='median')
+    plt.xticks(rotation=45)
+    plt.title("District " + str(i) + ": Mean and median monthly rent, 1BR")
+    plt.xlabel("date")
+    plt.ylabel("Amount (SGD)")
+    plt.legend(loc='best')
+    
+    plt.subplot(1, 3, 2)
+    plt.plot(twobr.lease_month,twobr.monthly_rent,label='mean')
+    plt.plot(twobr.lease_month,twobr.monthly_rent_copy,label='median')
+    plt.xticks(rotation=45)
+    plt.title("District " + str(i) + ": Mean and median monthly rent, 2BR")
+    plt.xlabel("date")
+    plt.ylabel("Amount (SGD)")
+    plt.legend(loc='best')
+    
+    plt.subplot(1, 3, 3)
+    plt.plot(threebr.lease_month,threebr.monthly_rent,label='mean')
+    plt.plot(threebr.lease_month,threebr.monthly_rent_copy,label='median')
+    plt.xticks(rotation=45)
+    plt.title("District " + str(i) + ": Mean and median monthly rent, 3BR")
+    plt.xlabel("date")
+    plt.ylabel("Amount (SGD)")
+    plt.legend(loc='best')
+    
 
 
 # #### The difference between mean and median isnt that much, will be going with mean
@@ -474,7 +508,7 @@ savings_for_longer_lease = (
     .query("ds_y == lowest_month_date")
     .drop(['ds_y'],1)
     .rename(columns={"ds_x":"ds","ensemble_model_output_x":"ensemble_model_output","ensemble_model_output_y":"previous_year_rental"})
-    .pipe(lambda x:x.assign(savings_24months_lease = 12 * (x.ensemble_model_output-x.previous_year_rental)))
+    .pipe(lambda x:x.assign(savings_24months_lease = 12 * (x.holtwinter-x.previous_year_rental)))
     .pipe(lambda x:x.assign(should_extend_lease = np.where(x.savings_24months_lease>0,1,0)))
 )
 
@@ -489,7 +523,7 @@ total_savings_for_longer_lease_lowest_months = (
 
 
 
-total_savings_for_longer_lease_lowest_months[['district','location','lowest_month','highest_month','savings_per_year','savings_24months_lease','should_extend_lease','total_savings_per_year']]
+total_savings_for_longer_lease_lowest_months[['district','location','lowest_month','highest_month','savings_per_year','savings_24months_lease','should_extend_lease','total_savings_per_year']].head(10)
 
 
 
@@ -498,7 +532,7 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(10).distr
 # savings_for_each_district_with_location.head(10)
 
 
-# #### Districts to focus are 1, 7, 20 ,8, 22, 9, 2, 27, 4, 11
+# #### Districts to focus are 7, 1, 21 ,2, 3, 4, 9, 22, 11, 20
 
 # ### Plot out top 10 districts
 # - plot out prediction, trend
@@ -526,7 +560,7 @@ for i in districts_to_focus:
     focus_predict_plot_df = (
         predict_future_values
         .query("district == " + str(i))
-        [['ds','actual_monthly_rent','ensemble_model_output']]
+        [['ds','actual_monthly_rent','ensemble_model_output','holtwinter']]
     )
     
     lowest_month = savings_for_each_district_with_location.query("district == " + str(i)).lowest_month.values[0]
@@ -551,11 +585,13 @@ for i in districts_to_focus:
     plt.text(lowest_month-0.5,lowest_month_rent+10,"lowest\nmonth,"+str(lowest_month),color='red',fontsize='12')
     plt.text(highest_month-0.5,highest_month_rent+10,"highest\nmonth,"+str(highest_month),color='red',fontsize='12')
     plt.xlabel("month")
+    plt.ylim(bottom=lowest_month_rent-200)
+    plt.ylim(top=highest_month_rent+100)
     plt.ylabel("Amount (SGD)")
     
     plt.subplot(1, 3, 3)
     plt.plot(focus_predict_plot_df.query("ds <= '2018-12-01'").ds,focus_predict_plot_df.query("ds <= '2018-12-01'").actual_monthly_rent,label='actual')
-    plt.plot(focus_predict_plot_df.query("ds > '2018-12-01'").ds,focus_predict_plot_df.query("ds > '2018-12-01'").ensemble_model_output,label='predict')
+    plt.plot(focus_predict_plot_df.query("ds > '2018-12-01'").ds,focus_predict_plot_df.query("ds > '2018-12-01'").holtwinter,label='predict')
     plt.xticks(rotation=45)
     plt.title("District " + str(i) + ": Prediction of rent, next 24 months ")
     plt.legend(loc='best')
@@ -568,6 +604,7 @@ for i in districts_to_focus:
 # ### Conclusion
 # - Assumptions:
 #     1. the prediction of the rental amount in the next 24 months is assuming all things stay constant, and there is no new cooling property measure introduced
+#     1. we did an average over district, and did not look into specific area (example: bukit panjang or tiong bahru). if looked into specific areas, there might be differences between areas.
 # - Constraints:
 #     1. the prediction accuracy can be further improved if a better model is applied, however to reduce complexity, 2 simple models were used to
 
