@@ -1,14 +1,5 @@
 
-# coding: utf-8
-
-# ___
-# This notebook tries to address two questions for rental lease:
-# 1. is there a seasonality effect for certain months and areas?
-# 1. how long should the lease be? 12, or 24?
-
-
-
-get_ipython().magic('matplotlib inline')
+%matplotlib inline
 import pandas as pd
 import numpy as np
 from selenium import webdriver
@@ -33,42 +24,8 @@ from datetime import timedelta,datetime
 import warnings
 warnings.filterwarnings("ignore")
 
-
-# ## Scope of analysis
-# - Data pull
-# - Pre-process data
-# - Forecast rental amount of each month for each district*
-# - Find out which district in each month is cheapest (and most expensive)
-# - Find out the amount of savings for each district
-# - Predict rental prices for each district for the next 24 months
-# - Find out the amount of savings for each district from prediction of next 24 months
-# - Get total savings
-# - Plot out districts that are top 10 in savings to see predict fit
-# 
-# *1 BR is only looked into here, although data for 2BR and 3BR are pulled too
-
-# ## Summary
-# - Total savings of lease can be up to `$`7,854 (avg total savings: `$`2538.05)
-#     - Savings from extending lease to 24 months, can be up to `$`2070 (avg total savings: `$`644)
-#     - Savings from leasing on the lowest month, can be up to `$`7854 (avg total savings: `$`2254)
-# - The districts that have the most savings are `7, 1, 21 ,2, 3`
-
-# ## Data pull
-# - due to the nature of the website and how the data can be pulled from the website
-# - a web scrap 'script' needs to be in placed so that we will not have to manually go through the steps and obtain the data
-# - Selenium is used to pull all the data required
-
-# ### Initialize selenium browser
-
-
-
 driver = webdriver.Chrome()
 driver.get("https://www.ura.gov.sg/realEstateIIWeb/resiRental/changeDisplayUnit.action")
-
-
-# ### Loop through all condos to obtain data
-
-
 
 # for i in range(0,600):
 #     print(i)
@@ -88,11 +45,6 @@ driver.get("https://www.ura.gov.sg/realEstateIIWeb/resiRental/changeDisplayUnit.
 #     print("finish")
 
 driver.stop_client()
-
-
-# ### Read csv files, and aggregate them
-
-
 
 file = "../data/aggregate_raw_data.csv"
 if not os.path.exists(file):
@@ -117,17 +69,6 @@ if not os.path.exists(file):
 else:
     aggregate_df = pd.read_csv("../data/aggregate_raw_data.csv")
 
-
-# ## Pre process data
-# - minor pre-process data
-# - pre-process data
-# - decision if mean or median of monthly rental should be used for predicted variable
-
-# ### Minor pre-process data
-# - change column names and data type of columns
-
-
-
 # change column names and drop first column and change data type of columns
 aggregate_df_processed = (
     aggregate_df
@@ -139,15 +80,6 @@ aggregate_df_processed = (
     .pipe(lambda x:x.assign(monthly_rent = x.monthly_rent.astype(float)))
     .query("(type == 'Non-landed Properties' | type == 'Executive Condominium')")
 )
-
-
-# ### Pre-process data
-# - fill in missing data of number of bedrooms
-# - set the size of the property
-# - one hot encode which month the rental lease is signed
-# - introduce trend variables (up to third order)
-
-
 
 aggregate_df_processed_final = (
     aggregate_df_processed
@@ -166,9 +98,6 @@ aggregate_df_processed_final = (
     )))
     .pipe(lambda x:x.assign(monthly_rent = x.monthly_rent.astype(float)))
 )
-
-
-
 
 model_data = (
     aggregate_df_processed_final
@@ -190,13 +119,6 @@ model_data = (
     .pipe(lambda x:x.assign(time_time_time = x.time * x.time * x.time))
 )
 
-
-# ### Decision if mean or median of monthly rental should be used for predicted variable
-# - predicted variable = dependent variable = variable we are trying to predict = monthly rent
-# - limiting to 3 bedrooms or lesser
-
-
-
 decision_mean_median = (
     model_data
     .pipe(lambda x:x.assign(monthly_rent_copy = x.monthly_rent))
@@ -209,9 +131,6 @@ decision_mean_median = (
 )
 
 decision_mean_median.head()
-
-
-
 
 ## sub plot of difference between mean and median for all districts
 for i in decision_mean_median.district.unique():
@@ -249,11 +168,6 @@ for i in decision_mean_median.district.unique():
     plt.legend(loc='best')
     
 
-
-# #### The difference between mean and median isnt that much, will be going with mean
-
-
-
 average_model_data = (
     model_data
     .groupby(['lease_month','district','num_bedrooms_altered','time','time_time','time_time_time','m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12'])
@@ -262,27 +176,14 @@ average_model_data = (
     .rename(columns={"sq_ft_altered":"num_data_points"})
 )
 
-
-
-
 average_model_data.tail()
-
-
-# ## Forecast rental amount of each month for each district
-
-# ### Forecast each month, the rental lease for each district
-# - functionalize for each bedroom type
-# - districts that have insufficient data will be ignored
-
-
 
 def get_each_district_cheapest_month(df, num_BR):
     unique_num_district = df.district.unique()
     summary_model_district_df = None
     aggregate_prediction_df = None
     for i in unique_num_district:
-#         X = df.query("district == " + str(i) + " & num_bedrooms_altered == " + str(num_BR))[['time','time_time','time_time_time','m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12']]
-        X = df.query("district == " + str(i) + " & num_bedrooms_altered == " + str(num_BR))[['time','time_time','m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12']]
+        X = df.query("district == " + str(i) + " & num_bedrooms_altered == " + str(num_BR))[['time','time_time','time_time_time','m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12']]
         X = sm.add_constant(X)
         y = df.query("district == " + str(i) + " & num_bedrooms_altered == " + str(num_BR))[['monthly_rent']]
         model_rent = sm.OLS(y,X).fit()
@@ -307,9 +208,8 @@ def get_each_district_cheapest_month(df, num_BR):
                 .merge(y.reset_index(),how='inner',on=['index'])
                 .rename(columns={0:"prediction"})
                 .merge(average_model_data.reset_index()[['lease_month','index','time']],how='inner',on='index')
-                .pipe(lambda x:x.assign(trend = model_rent.params.const +model_rent.params.time * x.time +model_rent.params.time_time * x.time*x.time))
-#                 .pipe(lambda x:x.assign(seasonal = x.prediction - model_rent.params.time * x.time - model_rent.params.time_time*x.time*x.time - model_rent.params.time_time_time*x.time*x.time*x.time))
-                .pipe(lambda x:x.assign(seasonal = x.prediction - model_rent.params.time * x.time - model_rent.params.time_time*x.time*x.time))
+                .pipe(lambda x:x.assign(trend = model_rent.params.const +model_rent.params.time * x.time +model_rent.params.time_time * x.time*x.time + model_rent.params.time_time_time *x.time*x.time*x.time))
+                .pipe(lambda x:x.assign(seasonal = x.prediction - model_rent.params.time * x.time - model_rent.params.time_time*x.time*x.time - model_rent.params.time_time_time*x.time*x.time*x.time))
                 .pipe(lambda x:x.assign(month = pd.to_datetime(x.lease_month).dt.month))    
                 .pipe(lambda x:x.assign(district = i))
             )
@@ -329,18 +229,9 @@ def get_each_district_cheapest_month(df, num_BR):
     
     return summary_model_district_df.dropna(), aggregate_prediction_df
 
-
-
-
 one_bedroom_figures = get_each_district_cheapest_month(average_model_data,1)
 two_bedroom_figures = get_each_district_cheapest_month(average_model_data,2)
 three_bedroom_figures = get_each_district_cheapest_month(average_model_data,3)
-
-
-# ### Based on the forecast, find out which is the lowest (and highest) month. And the savings from each district
-# - get top 5 saving districts
-
-
 
 def get_savings_for_each_district(df):
     unique_districts = df.district.unique()
@@ -381,22 +272,10 @@ def get_savings_for_each_district(df):
     return aggregate_savings_df
         
 
-
-# ### To change to 2BR or 3BR change the second line of code to:
-# - `get_savings_for_each_district(two_bedroom_figures[1])`
-# - `get_savings_for_each_district(three_bedroom_figures[1])`
-
-
-
 savings_for_each_district_df = (
     get_savings_for_each_district(one_bedroom_figures[1])
     .sort_values(['savings_per_year'],ascending=False)
 )
-
-
-# ### Show which areas is in each district
-
-
 
 district_areas = pd.read_csv('../data/district_area.csv')
 savings_for_each_district_with_location = (
@@ -405,13 +284,6 @@ savings_for_each_district_with_location = (
 )
 
 savings_for_each_district_with_location.head(2)
-
-
-# ### Predict the next 24 months of rental for each district
-# 
-# ### Ensemble of both methods, holt winter and fb-prophet
-
-
 
 def predict_next_24_months_rental(df):
     unique_districts_available = df.district.unique()
@@ -479,16 +351,7 @@ def predict_next_24_months_rental(df):
     return aggregate_predict_next_24months
         
 
-
-
-
 predict_future_values = predict_next_24_months_rental(one_bedroom_figures[1])
-
-
-# ### combine both lowest month and duration
-# - assuming you rented in the lowest month, looking ahead in the next year, how much will you save?
-
-
 
 intermediate_df = (
     predict_future_values
@@ -499,11 +362,11 @@ intermediate_df = (
 
 savings_for_longer_lease = (
     intermediate_df
-    .merge(intermediate_df[['ds','actual_monthly_rent','district']],how='inner',left_on=['previous_year','district'],right_on=['ds','district'])
+    .merge(intermediate_df[['ds','ensemble_model_output','district']],how='inner',left_on=['previous_year','district'],right_on=['ds','district'])
     .pipe(lambda x:x.assign(lowest_month_date = pd.to_datetime(str("2018-")+(x.lowest_month.astype(str))+"-01")))
     .query("ds_y == lowest_month_date")
     .drop(['ds_y'],1)
-    .rename(columns={"ds_x":"ds","actual_monthly_rent_x":"actual_monthly_rent","actual_monthly_rent_y":"previous_year_rental"})
+    .rename(columns={"ds_x":"ds","ensemble_model_output_x":"ensemble_model_output","ensemble_model_output_y":"previous_year_rental"})
     .pipe(lambda x:x.assign(savings_24months_lease = 12 * (x.holtwinter-x.previous_year_rental)))
     .pipe(lambda x:x.assign(should_extend_lease = np.where(x.savings_24months_lease>0,1,0)))
 )
@@ -516,29 +379,9 @@ total_savings_for_longer_lease_lowest_months = (
     .sort_values(['total_savings_per_year'],ascending=False)
 )
 
-
-
-
-total_savings_for_longer_lease_lowest_months[['district','location','lowest_month','highest_month','savings_per_year','savings_24months_lease','should_extend_lease','total_savings_per_year']].head(10)
-
-
-
-
-total_savings_for_longer_lease_lowest_months.query("savings_24months_lease>0").savings_24months_lease.mean()
-
-
-
+total_savings_for_longer_lease_lowest_months[['district','location','lowest_month','highest_month','savings_per_year','savings_24months_lease','should_extend_lease','total_savings_per_year']].head(5)
 
 districts_to_focus = total_savings_for_longer_lease_lowest_months.head(5).district.unique()
-
-
-# #### Districts to focus are 7, 1, 21 ,2, 3, 4, 9, 22, 11, 20
-
-# ### Plot out top 10 districts
-# - plot out prediction, trend
-# - plot out seasonal on the side
-
-
 
 (
     total_savings_for_longer_lease_lowest_months
@@ -546,9 +389,6 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(5).distri
     [['district','location','lowest_month','highest_month','savings_24months_lease','should_extend_lease','savings_per_year','total_savings_per_year']]
     .rename(columns={"savings_per_year":"savings_per_year_from_renting_lowest_month","should_extend_lease":"should_sign_24_months_lease"})
 )
-
-
-
 
 for i in districts_to_focus:
     focus_plot_df = (
@@ -591,14 +431,3 @@ for i in districts_to_focus:
     plt.ylabel("Amount (SGD)")
     
     plt.tight_layout()
-
-
-# ### Conclusion
-# - Assumptions:
-#     1. the prediction of the rental amount in the next 24 months is assuming all things stay constant, and there is no new cooling property measure introduced
-#     1. we did an average over district, and did not look into specific area (example: bukit panjang or tiong bahru). if looked into specific areas, there might be differences between areas.
-# - Constraints:
-#     1. the prediction accuracy can be further improved if a better model is applied, however to reduce complexity, 2 simple models were used to
-
-# ### Next steps
-# - while this is done for rental lease, an similar exercise will be replicated for property sale

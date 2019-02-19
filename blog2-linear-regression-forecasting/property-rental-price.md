@@ -32,6 +32,10 @@ import warnings
 warnings.filterwarnings("ignore")
 ```
 
+    /Users/shumingpeh/anaconda3/lib/python3.6/site-packages/sklearn/cross_validation.py:41: DeprecationWarning: This module was deprecated in version 0.18 in favor of the model_selection module into which all the refactored classes and functions are moved. Also note that the interface of the new CV iterators are different from that of this module. This module will be removed in 0.20.
+      "This module will be removed in 0.20.", DeprecationWarning)
+
+
 
 <style>.container { width:90% !important; }</style>
 
@@ -637,7 +641,8 @@ def get_each_district_cheapest_month(df, num_BR):
     summary_model_district_df = None
     aggregate_prediction_df = None
     for i in unique_num_district:
-        X = df.query("district == " + str(i) + " & num_bedrooms_altered == " + str(num_BR))[['time','time_time','time_time_time','m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12']]
+#         X = df.query("district == " + str(i) + " & num_bedrooms_altered == " + str(num_BR))[['time','time_time','time_time_time','m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12']]
+        X = df.query("district == " + str(i) + " & num_bedrooms_altered == " + str(num_BR))[['time','time_time','m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12']]
         X = sm.add_constant(X)
         y = df.query("district == " + str(i) + " & num_bedrooms_altered == " + str(num_BR))[['monthly_rent']]
         model_rent = sm.OLS(y,X).fit()
@@ -662,8 +667,9 @@ def get_each_district_cheapest_month(df, num_BR):
                 .merge(y.reset_index(),how='inner',on=['index'])
                 .rename(columns={0:"prediction"})
                 .merge(average_model_data.reset_index()[['lease_month','index','time']],how='inner',on='index')
-                .pipe(lambda x:x.assign(trend = model_rent.params.const +model_rent.params.time * x.time +model_rent.params.time_time * x.time*x.time + model_rent.params.time_time_time *x.time*x.time*x.time))
-                .pipe(lambda x:x.assign(seasonal = x.prediction - model_rent.params.time * x.time - model_rent.params.time_time*x.time*x.time - model_rent.params.time_time_time*x.time*x.time*x.time))
+                .pipe(lambda x:x.assign(trend = model_rent.params.const +model_rent.params.time * x.time +model_rent.params.time_time * x.time*x.time))
+#                 .pipe(lambda x:x.assign(seasonal = x.prediction - model_rent.params.time * x.time - model_rent.params.time_time*x.time*x.time - model_rent.params.time_time_time*x.time*x.time*x.time))
+                .pipe(lambda x:x.assign(seasonal = x.prediction - model_rent.params.time * x.time - model_rent.params.time_time*x.time*x.time))
                 .pipe(lambda x:x.assign(month = pd.to_datetime(x.lease_month).dt.month))    
                 .pipe(lambda x:x.assign(district = i))
             )
@@ -796,22 +802,22 @@ savings_for_each_district_with_location.head(2)
     <tr>
       <th>0</th>
       <td>7</td>
-      <td>7854.27</td>
+      <td>9196.77</td>
       <td>2</td>
-      <td>3379.240170</td>
+      <td>3093.789321</td>
       <td>11</td>
-      <td>2724.717388</td>
+      <td>2327.391896</td>
       <td>Beach Road</td>
       <td>Beach Road, Bencoolen Road, Bugis, Rochor</td>
     </tr>
     <tr>
       <th>1</th>
       <td>1</td>
-      <td>4911.53</td>
+      <td>4816.43</td>
       <td>4</td>
-      <td>3383.292584</td>
+      <td>3476.205617</td>
       <td>6</td>
-      <td>2973.998541</td>
+      <td>3074.836509</td>
       <td>Marina Area</td>
       <td>Boat Quay, Chinatown, Havelock Road, Marina Sq...</td>
     </tr>
@@ -965,11 +971,11 @@ intermediate_df = (
 
 savings_for_longer_lease = (
     intermediate_df
-    .merge(intermediate_df[['ds','ensemble_model_output','district']],how='inner',left_on=['previous_year','district'],right_on=['ds','district'])
+    .merge(intermediate_df[['ds','actual_monthly_rent','district']],how='inner',left_on=['previous_year','district'],right_on=['ds','district'])
     .pipe(lambda x:x.assign(lowest_month_date = pd.to_datetime(str("2018-")+(x.lowest_month.astype(str))+"-01")))
     .query("ds_y == lowest_month_date")
     .drop(['ds_y'],1)
-    .rename(columns={"ds_x":"ds","ensemble_model_output_x":"ensemble_model_output","ensemble_model_output_y":"previous_year_rental"})
+    .rename(columns={"ds_x":"ds","actual_monthly_rent_x":"actual_monthly_rent","actual_monthly_rent_y":"previous_year_rental"})
     .pipe(lambda x:x.assign(savings_24months_lease = 12 * (x.holtwinter-x.previous_year_rental)))
     .pipe(lambda x:x.assign(should_extend_lease = np.where(x.savings_24months_lease>0,1,0)))
 )
@@ -985,7 +991,7 @@ total_savings_for_longer_lease_lowest_months = (
 
 
 ```python
-total_savings_for_longer_lease_lowest_months[['district','location','lowest_month','highest_month','savings_per_year','savings_24months_lease','should_extend_lease','total_savings_per_year']].head(5)
+total_savings_for_longer_lease_lowest_months[['district','location','lowest_month','highest_month','savings_per_year','savings_24months_lease','should_extend_lease','total_savings_per_year']].head(10)
 ```
 
 
@@ -1026,10 +1032,10 @@ total_savings_for_longer_lease_lowest_months[['district','location','lowest_mont
       <td>Beach Road, Bencoolen Road, Bugis, Rochor</td>
       <td>11</td>
       <td>2</td>
-      <td>7854.27</td>
-      <td>-1271.525302</td>
-      <td>0</td>
-      <td>7854.270000</td>
+      <td>9196.77</td>
+      <td>3373.822052</td>
+      <td>1</td>
+      <td>12570.592052</td>
     </tr>
     <tr>
       <th>0</th>
@@ -1037,21 +1043,10 @@ total_savings_for_longer_lease_lowest_months[['district','location','lowest_mont
       <td>Boat Quay, Chinatown, Havelock Road, Marina Sq...</td>
       <td>6</td>
       <td>4</td>
-      <td>4911.53</td>
-      <td>-161.031362</td>
+      <td>4816.43</td>
+      <td>-472.783183</td>
       <td>0</td>
-      <td>4911.530000</td>
-    </tr>
-    <tr>
-      <th>19</th>
-      <td>21</td>
-      <td>Clementi, Upper Bukit Timah, Hume Avenue</td>
-      <td>1</td>
-      <td>8</td>
-      <td>2659.52</td>
-      <td>2070.576103</td>
-      <td>1</td>
-      <td>4730.096103</td>
+      <td>4816.430000</td>
     </tr>
     <tr>
       <th>1</th>
@@ -1059,10 +1054,76 @@ total_savings_for_longer_lease_lowest_months[['district','location','lowest_mont
       <td>Anson Road, Chinatown, Neil Road, Raffles Plac...</td>
       <td>3</td>
       <td>11</td>
-      <td>4440.15</td>
-      <td>-1616.438359</td>
+      <td>4324.38</td>
+      <td>-2700.657228</td>
       <td>0</td>
-      <td>4440.150000</td>
+      <td>4324.380000</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>21</td>
+      <td>Clementi, Upper Bukit Timah, Hume Avenue</td>
+      <td>1</td>
+      <td>8</td>
+      <td>2487.63</td>
+      <td>1435.272186</td>
+      <td>1</td>
+      <td>3922.902186</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>9</td>
+      <td>Cairnhill, Killiney, Leonie Hill, Orchard, Oxley</td>
+      <td>12</td>
+      <td>4</td>
+      <td>3330.82</td>
+      <td>-743.563908</td>
+      <td>0</td>
+      <td>3330.820000</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>4</td>
+      <td>Keppel, Mount Faber, Sentosa, Telok Blangah</td>
+      <td>6</td>
+      <td>2</td>
+      <td>2856.02</td>
+      <td>219.751631</td>
+      <td>1</td>
+      <td>3075.771631</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>22</td>
+      <td>Boon Lay, Jurong, Tuas</td>
+      <td>7</td>
+      <td>1</td>
+      <td>2739.10</td>
+      <td>166.818600</td>
+      <td>1</td>
+      <td>2905.918600</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>11</td>
+      <td>Chancery, Bukit Timah, Dunearn Road, Newton</td>
+      <td>3</td>
+      <td>10</td>
+      <td>2621.73</td>
+      <td>-889.440927</td>
+      <td>0</td>
+      <td>2621.730000</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>20</td>
+      <td>Ang Mo Kio, Bishan, Braddell Road, Thomson</td>
+      <td>8</td>
+      <td>11</td>
+      <td>2078.15</td>
+      <td>433.117750</td>
+      <td>1</td>
+      <td>2511.267750</td>
     </tr>
     <tr>
       <th>2</th>
@@ -1070,14 +1131,26 @@ total_savings_for_longer_lease_lowest_months[['district','location','lowest_mont
       <td>Alexandra Road, Tiong Bahru, Queenstown</td>
       <td>1</td>
       <td>3</td>
-      <td>1956.64</td>
-      <td>1703.878584</td>
-      <td>1</td>
-      <td>3660.518584</td>
+      <td>2086.49</td>
+      <td>-66.447290</td>
+      <td>0</td>
+      <td>2086.490000</td>
     </tr>
   </tbody>
 </table>
 </div>
+
+
+
+
+```python
+total_savings_for_longer_lease_lowest_months.query("savings_24months_lease>0").savings_24months_lease.mean()
+```
+
+
+
+
+    830.1227141704481
 
 
 
@@ -1140,10 +1213,10 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(5).distri
       <td>Beach Road, Bencoolen Road, Bugis, Rochor</td>
       <td>11</td>
       <td>2</td>
-      <td>-1271.525302</td>
-      <td>0</td>
-      <td>7854.27</td>
-      <td>7854.270000</td>
+      <td>3373.822052</td>
+      <td>1</td>
+      <td>9196.77</td>
+      <td>12570.592052</td>
     </tr>
     <tr>
       <th>0</th>
@@ -1151,21 +1224,10 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(5).distri
       <td>Boat Quay, Chinatown, Havelock Road, Marina Sq...</td>
       <td>6</td>
       <td>4</td>
-      <td>-161.031362</td>
+      <td>-472.783183</td>
       <td>0</td>
-      <td>4911.53</td>
-      <td>4911.530000</td>
-    </tr>
-    <tr>
-      <th>19</th>
-      <td>21</td>
-      <td>Clementi, Upper Bukit Timah, Hume Avenue</td>
-      <td>1</td>
-      <td>8</td>
-      <td>2070.576103</td>
-      <td>1</td>
-      <td>2659.52</td>
-      <td>4730.096103</td>
+      <td>4816.43</td>
+      <td>4816.430000</td>
     </tr>
     <tr>
       <th>1</th>
@@ -1173,21 +1235,32 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(5).distri
       <td>Anson Road, Chinatown, Neil Road, Raffles Plac...</td>
       <td>3</td>
       <td>11</td>
-      <td>-1616.438359</td>
+      <td>-2700.657228</td>
       <td>0</td>
-      <td>4440.15</td>
-      <td>4440.150000</td>
+      <td>4324.38</td>
+      <td>4324.380000</td>
     </tr>
     <tr>
-      <th>2</th>
-      <td>3</td>
-      <td>Alexandra Road, Tiong Bahru, Queenstown</td>
+      <th>19</th>
+      <td>21</td>
+      <td>Clementi, Upper Bukit Timah, Hume Avenue</td>
       <td>1</td>
-      <td>3</td>
-      <td>1703.878584</td>
+      <td>8</td>
+      <td>1435.272186</td>
       <td>1</td>
-      <td>1956.64</td>
-      <td>3660.518584</td>
+      <td>2487.63</td>
+      <td>3922.902186</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>9</td>
+      <td>Cairnhill, Killiney, Leonie Hill, Orchard, Oxley</td>
+      <td>12</td>
+      <td>4</td>
+      <td>-743.563908</td>
+      <td>0</td>
+      <td>3330.82</td>
+      <td>3330.820000</td>
     </tr>
   </tbody>
 </table>
@@ -1241,23 +1314,23 @@ for i in districts_to_focus:
 ```
 
 
-![png](property-rental-price_files/property-rental-price_43_0.png)
+![png](property-rental-price_files/property-rental-price_44_0.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_43_1.png)
+![png](property-rental-price_files/property-rental-price_44_1.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_43_2.png)
+![png](property-rental-price_files/property-rental-price_44_2.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_43_3.png)
+![png](property-rental-price_files/property-rental-price_44_3.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_43_4.png)
+![png](property-rental-price_files/property-rental-price_44_4.png)
 
 
 ### Conclusion
