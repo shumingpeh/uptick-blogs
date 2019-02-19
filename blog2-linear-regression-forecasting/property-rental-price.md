@@ -2,7 +2,7 @@
 ___
 This notebook tries to address two questions for rental lease:
 1. is there a seasonality effect for certain months and areas?
-1. how long should the lease be? 12, 18 or 24?
+1. how long should the lease be? 12, or 24?
 
 
 ```python
@@ -43,16 +43,17 @@ warnings.filterwarnings("ignore")
 - Find out which district in each month is cheapest (and most expensive)
 - Find out the amount of savings for each district
 - Predict rental prices for each district for the next 24 months
+- Find out the amount of savings for each district from prediction of next 24 months
 - Get total savings
 - Plot out districts that are top 10 in savings to see predict fit
 
 *1 BR is only looked into here, although data for 2BR and 3BR are pulled too
 
 ## Summary
-- Total savings of lease can be up to `$`10,611.51 (avg total savings: `$`3207.92)
-    - Savings from extending lease to 24 months, can be up to `$`5699.98 (avg total savings: `$`2254.44)
-    - Savings from leasing on the lowest month, can be up to `$`7854.27 (avg total savings: `$`644)
-- The districts that have the most savings are `1, 7, 20 ,8, 22, 9, 2, 27, 4, 11`
+- Total savings of lease can be up to `$`7,854 (avg total savings: `$`2538.05)
+    - Savings from extending lease to 24 months, can be up to `$`2070 (avg total savings: `$`644)
+    - Savings from leasing on the lowest month, can be up to `$`7854 (avg total savings: `$`2254)
+- The districts that have the most savings are `7, 1, 21 ,2, 3`
 
 ## Data pull
 - due to the nature of the website and how the data can be pulled from the website
@@ -191,238 +192,6 @@ model_data = (
     .pipe(lambda x:x.assign(time_time_time = x.time * x.time * x.time))
 )
 ```
-
-
-```python
-model_data.drop(['num_bedrooms','sq_ft'],1).head().T
-```
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>0</th>
-      <th>1</th>
-      <th>2</th>
-      <th>4</th>
-      <th>5</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>building_name</th>
-      <td>DAKOTA RESIDENCES</td>
-      <td>DAKOTA RESIDENCES</td>
-      <td>DAKOTA RESIDENCES</td>
-      <td>DAKOTA RESIDENCES</td>
-      <td>DAKOTA RESIDENCES</td>
-    </tr>
-    <tr>
-      <th>street_name</th>
-      <td>DAKOTA CRESCENT</td>
-      <td>DAKOTA CRESCENT</td>
-      <td>DAKOTA CRESCENT</td>
-      <td>DAKOTA CRESCENT</td>
-      <td>DAKOTA CRESCENT</td>
-    </tr>
-    <tr>
-      <th>district</th>
-      <td>14</td>
-      <td>14</td>
-      <td>14</td>
-      <td>14</td>
-      <td>14</td>
-    </tr>
-    <tr>
-      <th>type</th>
-      <td>Non-landed Properties</td>
-      <td>Non-landed Properties</td>
-      <td>Non-landed Properties</td>
-      <td>Non-landed Properties</td>
-      <td>Non-landed Properties</td>
-    </tr>
-    <tr>
-      <th>monthly_rent</th>
-      <td>3600</td>
-      <td>3700</td>
-      <td>6300</td>
-      <td>3600</td>
-      <td>5000</td>
-    </tr>
-    <tr>
-      <th>lease_month</th>
-      <td>2018-12-01 00:00:00</td>
-      <td>2018-12-01 00:00:00</td>
-      <td>2018-12-01 00:00:00</td>
-      <td>2018-12-01 00:00:00</td>
-      <td>2018-12-01 00:00:00</td>
-    </tr>
-    <tr>
-      <th>sq_ft_altered</th>
-      <td>1100</td>
-      <td>1100</td>
-      <td>1900</td>
-      <td>1100</td>
-      <td>1300</td>
-    </tr>
-    <tr>
-      <th>num_bedrooms_altered</th>
-      <td>3</td>
-      <td>3</td>
-      <td>4</td>
-      <td>3</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <th>m1</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>m2</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>m3</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>m4</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>m5</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>m6</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>m7</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>m8</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>m9</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>m10</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>m11</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>m12</th>
-      <td>1</td>
-      <td>1</td>
-      <td>1</td>
-      <td>1</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <th>min_year</th>
-      <td>2016</td>
-      <td>2016</td>
-      <td>2016</td>
-      <td>2016</td>
-      <td>2016</td>
-    </tr>
-    <tr>
-      <th>time</th>
-      <td>36</td>
-      <td>36</td>
-      <td>36</td>
-      <td>36</td>
-      <td>36</td>
-    </tr>
-    <tr>
-      <th>time_time</th>
-      <td>1296</td>
-      <td>1296</td>
-      <td>1296</td>
-      <td>1296</td>
-      <td>1296</td>
-    </tr>
-    <tr>
-      <th>time_time_time</th>
-      <td>46656</td>
-      <td>46656</td>
-      <td>46656</td>
-      <td>46656</td>
-      <td>46656</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
 
 ### Decision if mean or median of monthly rental should be used for predicted variable
 - predicted variable = dependent variable = variable we are trying to predict = monthly rent
@@ -565,111 +334,111 @@ for i in decision_mean_median.district.unique():
 ```
 
 
-![png](property-rental-price_files/property-rental-price_20_0.png)
+![png](property-rental-price_files/property-rental-price_19_0.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_1.png)
+![png](property-rental-price_files/property-rental-price_19_1.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_2.png)
+![png](property-rental-price_files/property-rental-price_19_2.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_3.png)
+![png](property-rental-price_files/property-rental-price_19_3.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_4.png)
+![png](property-rental-price_files/property-rental-price_19_4.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_5.png)
+![png](property-rental-price_files/property-rental-price_19_5.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_6.png)
+![png](property-rental-price_files/property-rental-price_19_6.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_7.png)
+![png](property-rental-price_files/property-rental-price_19_7.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_8.png)
+![png](property-rental-price_files/property-rental-price_19_8.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_9.png)
+![png](property-rental-price_files/property-rental-price_19_9.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_10.png)
+![png](property-rental-price_files/property-rental-price_19_10.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_11.png)
+![png](property-rental-price_files/property-rental-price_19_11.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_12.png)
+![png](property-rental-price_files/property-rental-price_19_12.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_13.png)
+![png](property-rental-price_files/property-rental-price_19_13.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_14.png)
+![png](property-rental-price_files/property-rental-price_19_14.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_15.png)
+![png](property-rental-price_files/property-rental-price_19_15.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_16.png)
+![png](property-rental-price_files/property-rental-price_19_16.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_17.png)
+![png](property-rental-price_files/property-rental-price_19_17.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_18.png)
+![png](property-rental-price_files/property-rental-price_19_18.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_19.png)
+![png](property-rental-price_files/property-rental-price_19_19.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_20.png)
+![png](property-rental-price_files/property-rental-price_19_20.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_21.png)
+![png](property-rental-price_files/property-rental-price_19_21.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_22.png)
+![png](property-rental-price_files/property-rental-price_19_22.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_23.png)
+![png](property-rental-price_files/property-rental-price_19_23.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_24.png)
+![png](property-rental-price_files/property-rental-price_19_24.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_25.png)
+![png](property-rental-price_files/property-rental-price_19_25.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_20_26.png)
+![png](property-rental-price_files/property-rental-price_19_26.png)
 
 
 #### The difference between mean and median isnt that much, will be going with mean
@@ -909,10 +678,8 @@ def get_each_district_cheapest_month(df, num_BR):
         except:
             pass
         
-#         if aggregate_prediction_df is None:
-#             aggregate_prediction_df = prediction_df
-#         else:
-#             aggregate_prediction_df = aggregate_prediction_df.append(prediction_df)
+        # check if seasonality exists
+        
     
     return summary_model_district_df.dropna(), aggregate_prediction_df
 ```
@@ -925,7 +692,7 @@ three_bedroom_figures = get_each_district_cheapest_month(average_model_data,3)
 ```
 
 ### Based on the forecast, find out which is the lowest (and highest) month. And the savings from each district
-- get top 10 saving districts
+- get top 5 saving districts
 
 
 ```python
@@ -1028,17 +795,6 @@ savings_for_each_district_with_location.head(2)
   <tbody>
     <tr>
       <th>0</th>
-      <td>6</td>
-      <td>13364.27</td>
-      <td>4</td>
-      <td>3456.843542</td>
-      <td>7</td>
-      <td>2343.154758</td>
-      <td>City Hall</td>
-      <td>City Hall, High Street, North Bridge Road</td>
-    </tr>
-    <tr>
-      <th>1</th>
       <td>7</td>
       <td>7854.27</td>
       <td>2</td>
@@ -1047,6 +803,17 @@ savings_for_each_district_with_location.head(2)
       <td>2724.717388</td>
       <td>Beach Road</td>
       <td>Beach Road, Bencoolen Road, Bugis, Rochor</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>4911.53</td>
+      <td>4</td>
+      <td>3383.292584</td>
+      <td>6</td>
+      <td>2973.998541</td>
+      <td>Marina Area</td>
+      <td>Boat Quay, Chinatown, Havelock Road, Marina Sq...</td>
     </tr>
   </tbody>
 </table>
@@ -1218,7 +985,7 @@ total_savings_for_longer_lease_lowest_months = (
 
 
 ```python
-total_savings_for_longer_lease_lowest_months[['district','location','lowest_month','highest_month','savings_per_year','savings_24months_lease','should_extend_lease','total_savings_per_year']].head(10)
+total_savings_for_longer_lease_lowest_months[['district','location','lowest_month','highest_month','savings_per_year','savings_24months_lease','should_extend_lease','total_savings_per_year']].head(5)
 ```
 
 
@@ -1308,61 +1075,6 @@ total_savings_for_longer_lease_lowest_months[['district','location','lowest_mont
       <td>1</td>
       <td>3660.518584</td>
     </tr>
-    <tr>
-      <th>3</th>
-      <td>4</td>
-      <td>Keppel, Mount Faber, Sentosa, Telok Blangah</td>
-      <td>6</td>
-      <td>2</td>
-      <td>2916.21</td>
-      <td>727.474375</td>
-      <td>1</td>
-      <td>3643.684375</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>9</td>
-      <td>Cairnhill, Killiney, Leonie Hill, Orchard, Oxley</td>
-      <td>12</td>
-      <td>4</td>
-      <td>3416.53</td>
-      <td>-632.498019</td>
-      <td>0</td>
-      <td>3416.530000</td>
-    </tr>
-    <tr>
-      <th>20</th>
-      <td>22</td>
-      <td>Boon Lay, Jurong, Tuas</td>
-      <td>7</td>
-      <td>1</td>
-      <td>3033.66</td>
-      <td>379.197204</td>
-      <td>1</td>
-      <td>3412.857204</td>
-    </tr>
-    <tr>
-      <th>9</th>
-      <td>11</td>
-      <td>Chancery, Bukit Timah, Dunearn Road, Newton</td>
-      <td>3</td>
-      <td>10</td>
-      <td>2715.38</td>
-      <td>-510.966512</td>
-      <td>0</td>
-      <td>2715.380000</td>
-    </tr>
-    <tr>
-      <th>18</th>
-      <td>20</td>
-      <td>Ang Mo Kio, Bishan, Braddell Road, Thomson</td>
-      <td>8</td>
-      <td>11</td>
-      <td>1956.01</td>
-      <td>644.381755</td>
-      <td>1</td>
-      <td>2600.391755</td>
-    </tr>
   </tbody>
 </table>
 </div>
@@ -1371,8 +1083,7 @@ total_savings_for_longer_lease_lowest_months[['district','location','lowest_mont
 
 
 ```python
-districts_to_focus = total_savings_for_longer_lease_lowest_months.head(10).district.unique()
-# savings_for_each_district_with_location.head(10)
+districts_to_focus = total_savings_for_longer_lease_lowest_months.head(5).district.unique()
 ```
 
 #### Districts to focus are 7, 1, 21 ,2, 3, 4, 9, 22, 11, 20
@@ -1385,8 +1096,8 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(10).distr
 ```python
 (
     total_savings_for_longer_lease_lowest_months
-    .head(10)
-    [['district','location','savings_24months_lease','should_extend_lease','savings_per_year','total_savings_per_year']]
+    .head()
+    [['district','location','lowest_month','highest_month','savings_24months_lease','should_extend_lease','savings_per_year','total_savings_per_year']]
     .rename(columns={"savings_per_year":"savings_per_year_from_renting_lowest_month","should_extend_lease":"should_sign_24_months_lease"})
 )
 ```
@@ -1414,6 +1125,8 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(10).distr
       <th></th>
       <th>district</th>
       <th>location</th>
+      <th>lowest_month</th>
+      <th>highest_month</th>
       <th>savings_24months_lease</th>
       <th>should_sign_24_months_lease</th>
       <th>savings_per_year_from_renting_lowest_month</th>
@@ -1425,6 +1138,8 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(10).distr
       <th>5</th>
       <td>7</td>
       <td>Beach Road, Bencoolen Road, Bugis, Rochor</td>
+      <td>11</td>
+      <td>2</td>
       <td>-1271.525302</td>
       <td>0</td>
       <td>7854.27</td>
@@ -1434,6 +1149,8 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(10).distr
       <th>0</th>
       <td>1</td>
       <td>Boat Quay, Chinatown, Havelock Road, Marina Sq...</td>
+      <td>6</td>
+      <td>4</td>
       <td>-161.031362</td>
       <td>0</td>
       <td>4911.53</td>
@@ -1443,6 +1160,8 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(10).distr
       <th>19</th>
       <td>21</td>
       <td>Clementi, Upper Bukit Timah, Hume Avenue</td>
+      <td>1</td>
+      <td>8</td>
       <td>2070.576103</td>
       <td>1</td>
       <td>2659.52</td>
@@ -1452,6 +1171,8 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(10).distr
       <th>1</th>
       <td>2</td>
       <td>Anson Road, Chinatown, Neil Road, Raffles Plac...</td>
+      <td>3</td>
+      <td>11</td>
       <td>-1616.438359</td>
       <td>0</td>
       <td>4440.15</td>
@@ -1461,55 +1182,12 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(10).distr
       <th>2</th>
       <td>3</td>
       <td>Alexandra Road, Tiong Bahru, Queenstown</td>
+      <td>1</td>
+      <td>3</td>
       <td>1703.878584</td>
       <td>1</td>
       <td>1956.64</td>
       <td>3660.518584</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>4</td>
-      <td>Keppel, Mount Faber, Sentosa, Telok Blangah</td>
-      <td>727.474375</td>
-      <td>1</td>
-      <td>2916.21</td>
-      <td>3643.684375</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>9</td>
-      <td>Cairnhill, Killiney, Leonie Hill, Orchard, Oxley</td>
-      <td>-632.498019</td>
-      <td>0</td>
-      <td>3416.53</td>
-      <td>3416.530000</td>
-    </tr>
-    <tr>
-      <th>20</th>
-      <td>22</td>
-      <td>Boon Lay, Jurong, Tuas</td>
-      <td>379.197204</td>
-      <td>1</td>
-      <td>3033.66</td>
-      <td>3412.857204</td>
-    </tr>
-    <tr>
-      <th>9</th>
-      <td>11</td>
-      <td>Chancery, Bukit Timah, Dunearn Road, Newton</td>
-      <td>-510.966512</td>
-      <td>0</td>
-      <td>2715.38</td>
-      <td>2715.380000</td>
-    </tr>
-    <tr>
-      <th>18</th>
-      <td>20</td>
-      <td>Ang Mo Kio, Bishan, Braddell Road, Thomson</td>
-      <td>644.381755</td>
-      <td>1</td>
-      <td>1956.01</td>
-      <td>2600.391755</td>
     </tr>
   </tbody>
 </table>
@@ -1538,76 +1216,48 @@ for i in districts_to_focus:
     highest_month_rent = savings_for_each_district_with_location.query("district == " + str(i)).highest_month_rent.values[0]
     
     plt.figure(figsize=(20,5))
-    plt.subplot(1, 3, 1)
-    plt.plot(focus_plot_df.lease_month,focus_plot_df.prediction,label='prediction')
+    plt.subplot(1, 2, 1)
+    plt.plot(focus_plot_df.lease_month,focus_plot_df.prediction,label='linear regression model')
     plt.plot(focus_plot_df.lease_month,focus_plot_df.monthly_rent,label='actual rent')
     plt.plot(focus_plot_df.lease_month,focus_plot_df.trend,label='trend')
+    plt.plot(focus_predict_plot_df.query("ds > '2018-12-01'").ds,focus_predict_plot_df.query("ds > '2018-12-01'").holtwinter,label='predict next 24 months')
     plt.xticks(rotation=45)
-    plt.title("District " + str(i) + ": Actual monthly rent against predicted (and trend of actual monthly rent)")
-    plt.xlabel("date")
+    plt.title("District " + str(i) + ": Actual monthly rent against predicted\n(and trend of actual monthly rent)")
+    plt.xlabel("date\n fig(a)")
     plt.ylabel("Amount (SGD)")
     plt.legend(loc='best')
     
-    plt.subplot(1, 3, 2)
+    plt.subplot(1, 2, 2)
     plt.bar(focus_plot_df.month,focus_plot_df.seasonal,label='seasonal')
-    plt.title("District " + str(i) + ": Seasonal months for monthly rent")
+    plt.title("District " + str(i) + ": Seasonal months for monthly rent (of when you start the leasing contract)")
     plt.text(lowest_month-0.5,lowest_month_rent+10,"lowest\nmonth,"+str(lowest_month),color='red',fontsize='12')
     plt.text(highest_month-0.5,highest_month_rent+10,"highest\nmonth,"+str(highest_month),color='red',fontsize='12')
-    plt.xlabel("month")
+    plt.xlabel("month\n fig(b)")
     plt.ylim(bottom=lowest_month_rent-200)
     plt.ylim(top=highest_month_rent+100)
-    plt.ylabel("Amount (SGD)")
-    
-    plt.subplot(1, 3, 3)
-    plt.plot(focus_predict_plot_df.query("ds <= '2018-12-01'").ds,focus_predict_plot_df.query("ds <= '2018-12-01'").actual_monthly_rent,label='actual')
-    plt.plot(focus_predict_plot_df.query("ds > '2018-12-01'").ds,focus_predict_plot_df.query("ds > '2018-12-01'").holtwinter,label='predict')
-    plt.xticks(rotation=45)
-    plt.title("District " + str(i) + ": Prediction of rent, next 24 months ")
-    plt.legend(loc='best')
-    plt.xlabel("date")
     plt.ylabel("Amount (SGD)")
     
     plt.tight_layout()
 ```
 
 
-![png](property-rental-price_files/property-rental-price_44_0.png)
+![png](property-rental-price_files/property-rental-price_43_0.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_44_1.png)
+![png](property-rental-price_files/property-rental-price_43_1.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_44_2.png)
+![png](property-rental-price_files/property-rental-price_43_2.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_44_3.png)
+![png](property-rental-price_files/property-rental-price_43_3.png)
 
 
 
-![png](property-rental-price_files/property-rental-price_44_4.png)
-
-
-
-![png](property-rental-price_files/property-rental-price_44_5.png)
-
-
-
-![png](property-rental-price_files/property-rental-price_44_6.png)
-
-
-
-![png](property-rental-price_files/property-rental-price_44_7.png)
-
-
-
-![png](property-rental-price_files/property-rental-price_44_8.png)
-
-
-
-![png](property-rental-price_files/property-rental-price_44_9.png)
+![png](property-rental-price_files/property-rental-price_43_4.png)
 
 
 ### Conclusion

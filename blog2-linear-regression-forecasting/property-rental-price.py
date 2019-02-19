@@ -4,7 +4,7 @@
 # ___
 # This notebook tries to address two questions for rental lease:
 # 1. is there a seasonality effect for certain months and areas?
-# 1. how long should the lease be? 12, 18 or 24?
+# 1. how long should the lease be? 12, or 24?
 
 
 
@@ -41,16 +41,17 @@ warnings.filterwarnings("ignore")
 # - Find out which district in each month is cheapest (and most expensive)
 # - Find out the amount of savings for each district
 # - Predict rental prices for each district for the next 24 months
+# - Find out the amount of savings for each district from prediction of next 24 months
 # - Get total savings
 # - Plot out districts that are top 10 in savings to see predict fit
 # 
 # *1 BR is only looked into here, although data for 2BR and 3BR are pulled too
 
 # ## Summary
-# - Total savings of lease can be up to `$`10,611.51 (avg total savings: `$`3207.92)
-#     - Savings from extending lease to 24 months, can be up to `$`5699.98 (avg total savings: `$`2254.44)
-#     - Savings from leasing on the lowest month, can be up to `$`7854.27 (avg total savings: `$`644)
-# - The districts that have the most savings are `1, 7, 20 ,8, 22, 9, 2, 27, 4, 11`
+# - Total savings of lease can be up to `$`7,854 (avg total savings: `$`2538.05)
+#     - Savings from extending lease to 24 months, can be up to `$`2070 (avg total savings: `$`644)
+#     - Savings from leasing on the lowest month, can be up to `$`7854 (avg total savings: `$`2254)
+# - The districts that have the most savings are `7, 1, 21 ,2, 3`
 
 # ## Data pull
 # - due to the nature of the website and how the data can be pulled from the website
@@ -190,11 +191,6 @@ model_data = (
 )
 
 
-
-
-model_data.drop(['num_bedrooms','sq_ft'],1).head().T
-
-
 # ### Decision if mean or median of monthly rental should be used for predicted variable
 # - predicted variable = dependent variable = variable we are trying to predict = monthly rent
 # - limiting to 3 bedrooms or lesser
@@ -326,10 +322,8 @@ def get_each_district_cheapest_month(df, num_BR):
         except:
             pass
         
-#         if aggregate_prediction_df is None:
-#             aggregate_prediction_df = prediction_df
-#         else:
-#             aggregate_prediction_df = aggregate_prediction_df.append(prediction_df)
+        # check if seasonality exists
+        
     
     return summary_model_district_df.dropna(), aggregate_prediction_df
 
@@ -342,7 +336,7 @@ three_bedroom_figures = get_each_district_cheapest_month(average_model_data,3)
 
 
 # ### Based on the forecast, find out which is the lowest (and highest) month. And the savings from each district
-# - get top 10 saving districts
+# - get top 5 saving districts
 
 
 
@@ -523,13 +517,12 @@ total_savings_for_longer_lease_lowest_months = (
 
 
 
-total_savings_for_longer_lease_lowest_months[['district','location','lowest_month','highest_month','savings_per_year','savings_24months_lease','should_extend_lease','total_savings_per_year']].head(10)
+total_savings_for_longer_lease_lowest_months[['district','location','lowest_month','highest_month','savings_per_year','savings_24months_lease','should_extend_lease','total_savings_per_year']].head(5)
 
 
 
 
-districts_to_focus = total_savings_for_longer_lease_lowest_months.head(10).district.unique()
-# savings_for_each_district_with_location.head(10)
+districts_to_focus = total_savings_for_longer_lease_lowest_months.head(5).district.unique()
 
 
 # #### Districts to focus are 7, 1, 21 ,2, 3, 4, 9, 22, 11, 20
@@ -542,8 +535,8 @@ districts_to_focus = total_savings_for_longer_lease_lowest_months.head(10).distr
 
 (
     total_savings_for_longer_lease_lowest_months
-    .head(10)
-    [['district','location','savings_24months_lease','should_extend_lease','savings_per_year','total_savings_per_year']]
+    .head()
+    [['district','location','lowest_month','highest_month','savings_24months_lease','should_extend_lease','savings_per_year','total_savings_per_year']]
     .rename(columns={"savings_per_year":"savings_per_year_from_renting_lowest_month","should_extend_lease":"should_sign_24_months_lease"})
 )
 
@@ -569,33 +562,25 @@ for i in districts_to_focus:
     highest_month_rent = savings_for_each_district_with_location.query("district == " + str(i)).highest_month_rent.values[0]
     
     plt.figure(figsize=(20,5))
-    plt.subplot(1, 3, 1)
-    plt.plot(focus_plot_df.lease_month,focus_plot_df.prediction,label='prediction')
+    plt.subplot(1, 2, 1)
+    plt.plot(focus_plot_df.lease_month,focus_plot_df.prediction,label='linear regression model')
     plt.plot(focus_plot_df.lease_month,focus_plot_df.monthly_rent,label='actual rent')
     plt.plot(focus_plot_df.lease_month,focus_plot_df.trend,label='trend')
+    plt.plot(focus_predict_plot_df.query("ds > '2018-12-01'").ds,focus_predict_plot_df.query("ds > '2018-12-01'").holtwinter,label='predict next 24 months')
     plt.xticks(rotation=45)
-    plt.title("District " + str(i) + ": Actual monthly rent against predicted (and trend of actual monthly rent)")
-    plt.xlabel("date")
+    plt.title("District " + str(i) + ": Actual monthly rent against predicted\n(and trend of actual monthly rent)")
+    plt.xlabel("date\n fig(a)")
     plt.ylabel("Amount (SGD)")
     plt.legend(loc='best')
     
-    plt.subplot(1, 3, 2)
+    plt.subplot(1, 2, 2)
     plt.bar(focus_plot_df.month,focus_plot_df.seasonal,label='seasonal')
-    plt.title("District " + str(i) + ": Seasonal months for monthly rent")
+    plt.title("District " + str(i) + ": Seasonal months for monthly rent (of when you start the leasing contract)")
     plt.text(lowest_month-0.5,lowest_month_rent+10,"lowest\nmonth,"+str(lowest_month),color='red',fontsize='12')
     plt.text(highest_month-0.5,highest_month_rent+10,"highest\nmonth,"+str(highest_month),color='red',fontsize='12')
-    plt.xlabel("month")
+    plt.xlabel("month\n fig(b)")
     plt.ylim(bottom=lowest_month_rent-200)
     plt.ylim(top=highest_month_rent+100)
-    plt.ylabel("Amount (SGD)")
-    
-    plt.subplot(1, 3, 3)
-    plt.plot(focus_predict_plot_df.query("ds <= '2018-12-01'").ds,focus_predict_plot_df.query("ds <= '2018-12-01'").actual_monthly_rent,label='actual')
-    plt.plot(focus_predict_plot_df.query("ds > '2018-12-01'").ds,focus_predict_plot_df.query("ds > '2018-12-01'").holtwinter,label='predict')
-    plt.xticks(rotation=45)
-    plt.title("District " + str(i) + ": Prediction of rent, next 24 months ")
-    plt.legend(loc='best')
-    plt.xlabel("date")
     plt.ylabel("Amount (SGD)")
     
     plt.tight_layout()
