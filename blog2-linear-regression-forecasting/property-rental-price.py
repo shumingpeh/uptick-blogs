@@ -140,6 +140,8 @@ aggregate_df_processed = (
     .query("(type == 'Non-landed Properties' | type == 'Executive Condominium')")
 )
 
+aggregate_df_processed.head()
+
 
 # ### Pre-process data
 # - fill in missing data of number of bedrooms
@@ -150,7 +152,7 @@ aggregate_df_processed = (
 
 
 aggregate_df_processed_final = (
-    aggregate_df_processed
+aggregate_df_processed
     .query("(type == 'Non-landed Properties' | type == 'Executive Condominium')")
     .pipe(lambda x:x.assign(sq_ft = np.where(
                                             x.sq_ft == '>3000',"3100 to 3100",
@@ -256,7 +258,7 @@ for i in decision_mean_median.district.unique():
 
 average_model_data = (
     model_data
-    .groupby(['lease_month','district','num_bedrooms_altered','time','time_time','time_time_time','m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12'])
+    .groupby(['lease_month','district','num_bedrooms_altered','time','time_time','m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12'])
     .agg({"monthly_rent":"mean","sq_ft_altered":"count"})
     .reset_index()
     .rename(columns={"sq_ft_altered":"num_data_points"})
@@ -335,6 +337,27 @@ def get_each_district_cheapest_month(df, num_BR):
 one_bedroom_figures = get_each_district_cheapest_month(average_model_data,1)
 two_bedroom_figures = get_each_district_cheapest_month(average_model_data,2)
 three_bedroom_figures = get_each_district_cheapest_month(average_model_data,3)
+
+
+# ### Fit of linear regression models
+
+
+
+# fit of models
+(
+    one_bedroom_figures[1]
+    .pipe(lambda x:x.assign(error_value = x.prediction-x.monthly_rent))
+    .pipe(lambda x:x.assign(abs_error = abs(x.error_value)))
+    .pipe(lambda x:x.assign(error_square = x.error_value * x.error_value))
+    .groupby(['district'])
+    .agg({"monthly_rent":"mean","month":"count","abs_error":"sum","error_square":"sum"})
+    .reset_index()
+    .pipe(lambda x:x.assign(mae = x.abs_error/x.month))
+    .pipe(lambda x:x.assign(rmse = np.sqrt(x.error_square/x.month)))
+    .pipe(lambda x:x.assign(mae_percentage_error = x.mae/x.monthly_rent))
+    .pipe(lambda x:x.assign(rmse_percentage_error = x.rmse/x.monthly_rent))
+    [['district','monthly_rent','mae','rmse','mae_percentage_error','rmse_percentage_error']]
+)
 
 
 # ### Based on the forecast, find out which is the lowest (and highest) month. And the savings from each district
@@ -485,6 +508,32 @@ def predict_next_24_months_rental(df):
 predict_future_values = predict_next_24_months_rental(one_bedroom_figures[1])
 
 
+
+
+predict_future_values.head()
+
+
+# ### Fit of time-series models
+
+
+
+(
+    predict_future_values
+    .query("actual_monthly_rent > 0")
+    .pipe(lambda x:x.assign(error_value = x.holtwinter-x.actual_monthly_rent))
+    .pipe(lambda x:x.assign(abs_error = abs(x.error_value)))
+    .pipe(lambda x:x.assign(error_square = x.error_value * x.error_value))
+    .groupby(['district'])
+    .agg({"actual_monthly_rent":"mean","ds":"count","abs_error":"sum","error_square":"sum"})
+    .reset_index()
+    .pipe(lambda x:x.assign(mae = x.abs_error/x.ds))
+    .pipe(lambda x:x.assign(rmse = np.sqrt(x.error_square/x.ds)))
+    .pipe(lambda x:x.assign(mae_percentage_error = x.mae/x.actual_monthly_rent))
+    .pipe(lambda x:x.assign(rmse_percentage_error = x.rmse/x.actual_monthly_rent))
+    [['district','actual_monthly_rent','mae','rmse','mae_percentage_error','rmse_percentage_error']]
+)
+
+
 # ### combine both lowest month and duration
 # - assuming you rented in the lowest month, looking ahead in the next year, how much will you save?
 
@@ -520,11 +569,6 @@ total_savings_for_longer_lease_lowest_months = (
 
 
 total_savings_for_longer_lease_lowest_months[['district','location','lowest_month','highest_month','savings_per_year','savings_24months_lease','should_extend_lease','total_savings_per_year']].head(10)
-
-
-
-
-total_savings_for_longer_lease_lowest_months.query("savings_24months_lease>0").savings_24months_lease.mean()
 
 
 
